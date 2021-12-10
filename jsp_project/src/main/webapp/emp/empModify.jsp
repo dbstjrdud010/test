@@ -1,0 +1,144 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8"
+    pageEncoding="UTF-8"%>
+<%@ include file="../include/dbCon.jsp" %>
+    
+<%
+String empno = request.getParameter("empno");
+
+if(empno == null || empno.equals("")) {
+%>
+	<script>
+	alert("다시 시도해 주세요");
+	location = "empList.jsp";
+	</script>
+<%	
+	return; // jsp 종료
+}
+
+String sql =  "select ename,sal,hiredate,deptno,job from emp";
+	   sql += "	where empno='"+empno+"' ";
+ResultSet rs = stmt.executeQuery(sql);
+
+String ename = "";
+int sal = 0;
+String hiredate = "";
+int deptno = 0;
+String job = "";
+
+if(rs.next()) { // 존재의 유무
+	ename = rs.getString("ename");
+	sal = rs.getInt("sal");
+	hiredate = rs.getString("hiredate");
+	deptno =rs.getInt("deptno");
+	job = rs.getString("job");
+}
+%>
+
+<%
+/*부서목록 얻기*/
+String sql2 = "select deptno,dname from dept order by dname asc";
+ResultSet rs2 = stmt.executeQuery(sql2);
+%>   
+
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Insert title here</title>
+<link rel="stylesheet" type="text/css" href="../css/empMain.css">
+
+<link rel="stylesheet" href="//code.jquery.com/ui/1.13.0/themes/base/jquery-ui.css">
+  <link rel="stylesheet" href="/resources/demos/style.css">
+  <script src="https://code.jquery.com/jquery-3.6.0.js"></script>
+  <script src="https://code.jquery.com/ui/1.13.0/jquery-ui.js"></script>
+  <script>
+  $( function() {
+    $( "#hiredate" ).datepicker({
+      changeMonth: true,
+      changeYear: true
+    });
+  } );
+  </script>
+</head>
+<style>
+
+</style>
+<script>
+function fn_submit() { // 공백일시 제한사항
+	if(document.frm.empno.value == ""){
+		alert("사원번호를 입력해주세요.");
+		documet.frm.empno.focus(); // 오류인곳 커서이동
+		return false;
+	}
+	if(document.frm.ename.value == ""){
+		alert("사원이름를 입력해주세요.");
+		documet.frm.ename.focus();
+		return false;
+	}
+	document.frm.submit(); // 전송
+}
+
+function fn_delete() {
+	if(confirm("정말 삭제하시겠습니까?")) { // [확인][취소]
+		var url = "empDelete.jsp?empno=<%=empno %>";
+			location = url;
+	}
+}
+</script>
+<body>
+
+<form name="frm" method="post" action="empWriteSave.jsp">
+<table align="center">
+	<caption style="font-size:15px;">사원정보등록</caption>
+	<tr>
+		<th width="20%">사원번호</th>
+		<td width="80%">
+			<input type="text" name="empno" value="<%=empno %>" readonly></td>
+	</tr>
+	<tr>
+		<th>사원이름</th>
+		<td><input type="text" name="ename" value="<%=ename %>"></td>
+	</tr>
+	<tr>
+		<th>업무</th>
+		<td><input type="text" name="job" value="<%=job %>"></td>
+	</tr>
+	<tr>
+		<th>급여</th>
+		<td><input type="text" name="sal" value="<%=sal %>"></td>
+	</tr>
+	<tr>
+		<th>입사일</th>
+		<td><input type="text" name="hiredate" id="hiredate" value="<%=hiredate %>"></td>
+	</tr>
+	<tr>
+		<th>부서번호</th>
+		<td>
+			<select name="deptno">
+			<%
+			while(rs2.next()) {
+				int no = rs2.getInt("deptno");
+				String dname = rs2.getString("dname");
+				String chk = "";
+				if(no == deptno) {
+					chk = "selected";
+				}
+			%>
+				<option value="<%=no %>" selected><%=dname %></option>
+			<%
+			}
+			%>
+			</select>
+		</td>
+	</tr>
+</table>
+<div style="width:100%;text-align:center;margin-top:10px;">
+	<button type="submit" onclick="fn_submit();return false;">저장</button>
+	<button type="reset">취소</button>
+	<button type="button" onclick="location='empList.jsp'">목록</button>
+	<button type="button" onclick="fn_delete()">삭제</button>
+</div>
+</form>
+
+</body>
+</html>
